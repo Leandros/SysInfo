@@ -24,3 +24,11 @@ sysinfo
 *.i*86
 *.x86_64
 *.hex
+
+# OS X
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
