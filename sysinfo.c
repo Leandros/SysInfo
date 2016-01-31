@@ -24,24 +24,24 @@
 #define TEXT_UNDERLINE  "\x1b[4m"
 
 /* Printing */
-char** get_extra_text();
-char** get_ascii_apple();
-void print_ascii_apple();
+char** get_extra_text(void);
+char** get_ascii_apple(void);
+void print_ascii_apple(void);
 
 /* Information */
 typedef char const* (*fpPrint)();
-fpPrint* get_functions();
-char const* get_user();
-char const* get_hostname();
-char const* get_osx_version();
-char const* get_kernel_version();
-char const* get_uptime();
-char const* get_shell();
-char const* get_terminal();
-char const* get_cpu();
-char const* get_gpu();
-char const* get_ram();
-char const* get_disk();
+fpPrint* get_functions(void);
+char const* get_user(void);
+char const* get_hostname(void);
+char const* get_osx_version(void);
+char const* get_kernel_version(void);
+char const* get_uptime(void);
+char const* get_shell(void);
+char const* get_terminal(void);
+char const* get_cpu(void);
+char const* get_gpu(void);
+char const* get_ram(void);
+char const* get_disk(void);
 
 int main(int argc, char** argv)
 {
@@ -53,7 +53,7 @@ int main(int argc, char** argv)
 }
 
 char**
-get_extra_text()
+get_extra_text(void)
 {
     static char* text[30];
     text[0] = NULL;
@@ -90,7 +90,7 @@ get_extra_text()
 }
 
 char**
-get_ascii_apple()
+get_ascii_apple(void)
 {
     static char* art[30];
     art[ 0] = COLOR_GREEN "                             ##"RESET_ALL;
@@ -127,7 +127,7 @@ get_ascii_apple()
 }
 
 void
-print_ascii_apple()
+print_ascii_apple(void)
 {
     fpPrint* functions;
     char** ascii;
@@ -158,7 +158,7 @@ print_ascii_apple()
 }
 
 fpPrint*
-get_functions()
+get_functions(void)
 {
     static fpPrint functions[30];
     functions[0] = NULL;
@@ -195,12 +195,12 @@ get_functions()
     return functions;
 }
 
-char const* get_user()
+char const* get_user(void)
 {
     return getlogin();
 }
 
-char const* get_hostname()
+char const* get_hostname(void)
 {
     static char ret[255];
 
@@ -212,7 +212,7 @@ char const* get_hostname()
     return ret;
 }
 
-char const* get_osx_version()
+char const* get_osx_version(void)
 {
 	FILE* fp;
 	int versionlen;
@@ -239,7 +239,7 @@ char const* get_osx_version()
     return ret;
 }
 
-char const* get_kernel_version()
+char const* get_kernel_version(void)
 {
     static char ret[255];
     struct utsname sys;
@@ -252,7 +252,7 @@ char const* get_kernel_version()
     return ret;
 }
 
-char const* get_uptime()
+char const* get_uptime(void)
 {
     static char ret[255];
     struct timeval boottime;
@@ -272,7 +272,7 @@ char const* get_uptime()
     return ret;
 }
 
-char const* get_shell()
+char const* get_shell(void)
 {
     static char ret[255];
     char* env;
@@ -282,7 +282,7 @@ char const* get_shell()
     return ret;
 }
 
-char const* get_terminal()
+char const* get_terminal(void)
 {
     static char ret[255];
     char* env;
@@ -292,7 +292,7 @@ char const* get_terminal()
     return ret;
 }
 
-char const* get_cpu()
+char const* get_cpu(void)
 {
     static char ret[255];
     size_t len = 255;
@@ -304,27 +304,40 @@ char const* get_cpu()
 }
 
 /* Not used. Due to the fact it's taken quite long to load */
-char const* get_gpu()
+char const* get_gpu(void)
 {
     static char ret[255];
     FILE* fp;
     char output[255];
-    char* cmd = "system_profiler -detailLevel mini SPDisplaysDataType 2> /dev/null | grep \"Chipset Model:\" | sed -e 's/Chipset Model://' | sed -e 's/^[ \\t ]*//' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\\n/, /g'";
+    size_t i, len;
+    char* cmd = "system_profiler -detailLevel mini SPDisplaysDataType 2> /dev/null | grep \"Chipset Model:\" | sed -e 's/Chipset Model://' | sed -e 's/^[ \\t ]*//'";
 
 	fp = popen(cmd, "r");
 	if (!fp) return NULL;
-	if (!fgets(output, sizeof(output) - 1, fp))
+	if ((len = fread(output, 1, sizeof(output) - 1, fp)) == 0)
     {
         pclose(fp);
         return NULL;
     }
 	pclose(fp);
 
-    memcpy(ret, output, strlen(output) - 1);
+    output[len] = '\0';
+
+    len = strlen(output);
+    memcpy(ret, output, len);
+    for (i = 0; i < len; i++)
+    {
+        if (ret[i] == '\n')
+        {
+            ret[i] = ',';
+        }
+    }
+
+    ret[len - 1] = '\0';
     return ret;
 }
 
-char const* get_ram()
+char const* get_ram(void)
 {
     static char ret[255];
     int64_t mem;
@@ -339,7 +352,7 @@ char const* get_ram()
     return ret;
 }
 
-char const* get_disk()
+char const* get_disk(void)
 {
     static char ret[255];
     struct statfs fs;
